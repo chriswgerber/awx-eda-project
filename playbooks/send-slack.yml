@@ -1,7 +1,17 @@
+---
 
 - name: Notify via Slack
   hosts: all
+  vars:
+    slack_message_text_default: 'Event Trigger Playbook - {{ inventory_hostname }}'
+    slack_message_text: "{{ ansible_eda.event.message | default(slack_message_text_default) }}"
+
   tasks:
+    - name: Send notification message via Slack
+      ansible.builtin.debug:
+        msg: "{{ ansible_eda }}"
+      delegate_to: localhost
+
     - name: Send notification message via Slack
       ansible.builtin.uri:
         url: https://hooks.slack.com/triggers/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
@@ -9,6 +19,6 @@
         body_format: json
         body:
           channel_id: 'C075B3LN475' # #General
-          message: 'Event Trigger Playbook {{ inventory_hostname }}'
+          message: "{{ slack_message_text }}"
       delegate_to: localhost
 

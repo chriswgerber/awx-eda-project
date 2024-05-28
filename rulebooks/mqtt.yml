@@ -1,0 +1,19 @@
+---
+- name: Send messages from MQTT Topic
+  hosts: all
+
+  sources:
+    - kubealex.eda.mqtt:
+        host: "{{ mqtt_host }}"
+        port: "{{ mqtt_port }}"
+        topic: "{{ mqtt_topic }}"
+
+  rules:
+    - name: Run 'Slack Notifications' Template
+      action:
+        run_job_template:
+          name: Slack Notifications
+          organization: Default
+          job_args:
+            extra_vars:
+                event_message: "{{ event.message }}"
