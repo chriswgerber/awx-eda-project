@@ -11,4 +11,4 @@ function format_msg() {
   printf "${MESSAGE_TEMPLATE}" $1 $2
 }
 
-mqttui publish "${MQTTUI_TOPIC}" "$(format_msg $1)"
+mqttui publish "${MQTTUI_TOPIC}" "$(format_msg $1 $2)"
