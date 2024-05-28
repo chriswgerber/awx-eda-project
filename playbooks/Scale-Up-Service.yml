@@ -1,7 +1,8 @@
 ---
 
 - name: Scale K8s Service
-  hosts: all
+  hosts: localhost
+
   vars:
     webapp_name: "{{ ansible_eda.event.service_name | default('example-webapp') }}"
     webapp_namespace: webapp
@@ -54,6 +55,7 @@
                 SvcName: {{ webapp_name }}
                 Target: {{ scale_target }}
           delegate_to: localhost
+
       rescue:
         - name: Send failure notification
           ansible.builtin.uri:
