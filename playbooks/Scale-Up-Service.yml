@@ -3,29 +3,26 @@
 - name: Notify via Slack
   hosts: all
   vars:
+    webapp_name: example-webapp
+    webapp_namespace: webapp
+    slack_webhook_url:
+    slack_message_channel_id: 'C075B3LN475' # #General
     scale_target: "{{ ansible_eda.event.scale | default(1) }}"
     slack_message_text_default: 'Scaling Up Webservice via EDA'
-    slack_message_text: >
-      {{ ansible_eda.event.message | default(slack_message_text_default) }} - Scale Target: {{ scale_target }}
+    slack_message_text: |
+      {{ ansible_eda.event.message | default(slack_message_text_default) }}
+      Ns: {{ webapp_namespace }}
+      SvcName: {{ webapp_name }}
+      Target: {{ scale_target }}
 
   tasks:
-    - name: Debug Ansible EDA
-      ansible.builtin.debug:
-        msg: |
-          ansible_eda
-          {{ ansible_eda }}
-            ----
-          event_message
-          {{ event_message }}
-      delegate_to: localhost
-
     - name: Send notification message via Slack
       ansible.builtin.uri:
-        url: https://hooks.slack.com/triggers/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
+        url: "{{ slack_webhook_url }}"
         method: POST
         body_format: json
         body:
-          channel_id: 'C075B3LN475' # #General
+          channel_id: "{{ slack_message_channel_id }}"
           message: "{{ slack_message_text }}"
       delegate_to: localhost
 
@@ -33,8 +30,7 @@
       kubernetes.core.k8s_scale:
         api_version: v1
         kind: Deployment
-        name: example-webapp
-        namespace: webapp
+        name: "{{ webapp_name }}"
+        namespace: "{{ webapp_namespace }}"
         replicas: "{{ scale_target | int }}"
         wait_timeout: 60
-
