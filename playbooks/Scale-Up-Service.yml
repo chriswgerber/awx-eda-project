@@ -3,7 +3,7 @@
 - name: Notify via Slack
   hosts: all
   vars:
-    webapp_name: "{{ ansible.event.service_name | default('example-webapp') }}"
+    webapp_name: "{{ ansible_eda.event.service_name | default('example-webapp') }}"
     webapp_namespace: webapp
     slack_webhook_url:
     slack_message_channel_id: 'C075B3LN475' # #General
