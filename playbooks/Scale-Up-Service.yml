@@ -10,10 +10,11 @@
     scale_target: "{{ ansible_eda.event.scale | default(1) }}"
     slack_message_text_default: 'Scaling Up Webservice via EDA'
     slack_message_text: |
-      *{{ ansible_eda.event.message | default(slack_message_text_default) }}*
-      *Ns:* {{ webapp_namespace }}
-      *SvcName:* {{ webapp_name }}
-      *Target:* {{ scale_target }}
+      {{ ansible_eda.event.message | default(slack_message_text_default) }}
+
+      Ns: {{ webapp_namespace }}
+      SvcName: {{ webapp_name }}
+      Target: {{ scale_target }}
 
   tasks:
     - name: Send notification message via Slack
