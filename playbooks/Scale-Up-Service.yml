@@ -39,17 +39,17 @@
       block:
         - name: Set Replica Scale Up
           ansible.builtin.set_fact:
-            service_replica_target: "{{ service_replica_count + 1 | int }}"
+            service_replica_target: "{{ (service_replica_count | int)  + 1 }}"
           when: service_action == "ScaleUp"
 
         - name: Set Replica Scale Down
           ansible.builtin.set_fact:
-            service_replica_target: "{{ service_replica_count - 1 | int }}"
+            service_replica_target: "{{ (service_replica_count | int) - 1 }}"
           when: service_action == "ScaleDown"
 
         - name: Set Minimum scale target
           ansible.builtin.set_fact:
-            service_replica_target: "{{ (0 if service_replica_target < 1 else service_replica_target ) | int }}"
+            service_replica_target: "{{ (1 if (service_replica_target | int) < 1 else service_replica_target ) }}"
 
     - name: Send Slack Message - Starting Scaling
       ansible.builtin.uri:
@@ -63,7 +63,7 @@
 
             Ns: {{ webapp_namespace }}
             SvcName: {{ webapp_name }}
-            Target: {{ service_replica_target }}
+            Target: {{ service_replica_target | int }}
       delegate_to: localhost
 
     - name: Run Scaling Tasks
@@ -74,7 +74,7 @@
             kind: Deployment
             name: "{{ webapp_name }}"
             namespace: "{{ webapp_namespace }}"
-            replicas: "{{ service_replica_target }}"
+            replicas: "{{ service_replica_target | int }}"
             wait_timeout: 60
           delegate_to: localhost
 
@@ -90,7 +90,7 @@
 
                 Ns: {{ webapp_namespace }}
                 SvcName: {{ webapp_name }}
-                Target: {{ service_replica_target }}
+                Target: {{ service_replica_target | int }}
           delegate_to: localhost
 
       rescue:
@@ -106,5 +106,5 @@
 
                 Ns: {{ webapp_namespace }}
                 SvcName: {{ webapp_name }}
-                Target: {{ service_replica_target }}
+                Target: {{ service_replica_target | int }}
           delegate_to: localhost
