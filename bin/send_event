@@ -3,13 +3,13 @@
 export MQTTUI_BROKER="mqtt://localhost:31883"
 export MQTTUI_TOPIC="server-events"
 
-MESSAGE_TEMPLATE='{"message": "%s", "scale": %s, "publish": true}'
+MESSAGE_TEMPLATE='{"message": "%s", "scale": %s, "service_name": "%s", "publish": true}'
 
 function format_msg() {
-  printf "${MESSAGE_TEMPLATE}" $1 $2
+  printf "${MESSAGE_TEMPLATE}" $1 $2 $3
 }
 
-event_msg="$(format_msg $1 $2)"
+event_msg="$(format_msg $1 $2 $3)"
 
 printf 'Sending Event: %s\n\n' "${event_msg}"
 

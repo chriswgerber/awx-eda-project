@@ -3,7 +3,7 @@
 - name: Notify via Slack
   hosts: all
   vars:
-    webapp_name: example-webapp
+    webapp_name: "{{ ansible.event.service_name | default('example-webapp') }}"
     webapp_namespace: webapp
     slack_webhook_url:
     slack_message_channel_id: 'C075B3LN475' # #General
@@ -35,3 +35,15 @@
         namespace: "{{ webapp_namespace }}"
         replicas: "{{ scale_target | int }}"
         wait_timeout: 60
+      delegate_to: localhost
+
+    - name: Send notification message via Slack
+      ansible.builtin.uri:
+        url: "{{ slack_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          channel_id: "{{ slack_message_channel_id }}"
+          message: |
+            Completed successfully.
+            {{ slack_message_text }}
