@@ -29,11 +29,11 @@
 
     - name: Show Current Spec
       ansible.builtin.debug:
-        msg: "{{ deployment_info.resources.spec }}"
+        msg: "{{ deployment_info.resources[0].spec }}"
 
     - name: Set Replica Count
       ansible.builtin.set_fact:
-        service_replica_count: "{{ deployment_info.resources.spec.replicas | int }}"
+        service_replica_count: "{{ deployment_info.resources[0].spec.replicas | int }}"
 
     - name: Set Replica Target
       block:
