@@ -3,13 +3,19 @@
 - name: Notify via Slack
   hosts: all
   vars:
-    slack_message_text_default: 'Event Trigger Playbook - {{ inventory_hostname }}'
+    slack_message_text_default: 'Scaling Up Webservice via EDA'
     slack_message_text: "{{ ansible_eda.event.message | default(slack_message_text_default) }}"
+    scale_target: "{{ ansible_eda.event.scale | default(1) }}"
 
   tasks:
-    - name: Send notification message via Slack
+    - name: Debug Ansible EDA
       ansible.builtin.debug:
-        msg: "{{ ansible_eda }}"
+        msg: |
+          ansible_eda
+          {{ ansible_eda }}
+            ----
+          event_message
+          {{ event_message }}
       delegate_to: localhost
 
     - name: Send notification message via Slack
@@ -21,4 +27,13 @@
           channel_id: 'C075B3LN475' # #General
           message: "{{ slack_message_text }}"
       delegate_to: localhost
+
+    - name: Scale Up Service
+      kubernetes.core.k8s_scale:
+        api_version: v1
+        kind: Deployment
+        name: example-webapp
+        namespace: webapp
+        replicas: "{{ scale_target | int }}"
+        wait_timeout: 60
 

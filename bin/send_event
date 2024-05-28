@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+set -x
+
+export MQTTUI_BROKER="mqtt://localhost:31883"
+export MQTTUI_TOPIC="server-events"
+
+MESSAGE_TEMPLATE='{"message": "%s", "scale": %s, "publish": true}'
+
+function format_msg() {
+  printf "${MESSAGE_TEMPLATE}" $1 $2
+}
+
+mqttui publish "${MQTTUI_TOPIC}" "$(format_msg $1)"
