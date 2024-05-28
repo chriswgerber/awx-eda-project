@@ -1,5 +1,6 @@
 ---
-- name: Invoke Job Template in reponse to MQTT Messages
+
+- name: Invoke Job Template in response to MQTT Messages
   hosts: all
 
   sources:
@@ -13,5 +14,5 @@
       condition: event.publish == true
       action:
         run_job_template:
-          name: Scale Up K8s Service
+          name: "{{ job_template_name }}"
           organization: Default
