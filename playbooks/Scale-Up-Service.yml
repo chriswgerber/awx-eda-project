@@ -62,7 +62,7 @@
             Starting: {{ slack_message_text }}
 
             Service: {{ webapp_namespace }} / {{ webapp_name }}
-            Action: {{ service_replica_count | int }} to {{ service_replica_target | int }}
+            Action: {{ service_action }} {{ service_replica_count | int }} to {{ service_replica_target | int }}
       delegate_to: localhost
 
     - name: Run Scaling Tasks
