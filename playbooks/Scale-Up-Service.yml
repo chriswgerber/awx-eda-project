@@ -8,12 +8,49 @@
     webapp_namespace: webapp
     slack_webhook_url:
     slack_message_channel_id: 'C075B3LN475' # #General
-    scale_target: "{{ ansible_eda.event.scale | default(1) }}"
     slack_message_text_default: 'Scaling Up Webservice via EDA'
     slack_message_text: >-
       {{ ansible_eda.event.message | default(slack_message_text_default) }}
 
+    # ScaleUp or ScaleDown
+    service_action: "{{ ansible_eda.event.action | default('None') }}"
+    service_replica_count:
+    service_replica_target:
   tasks:
+
+    - name: Search for matching Deployments
+      k8s_info:
+        api_version: v1
+        kind: Deployment
+        name: "{{ webapp_name }}"
+        namespace: "{{ webapp_namespace }}"
+      register: deployment_info
+      delegate_to: localhost
+
+    - name: Show Current Spec
+      ansible.builtin.debug:
+        msg: "{{ deployment_info.resources.spec }}"
+
+    - name: Set Replica Count
+      ansible.builtin.set_fact:
+        service_replica_count: "{{ deployment_info.resources.spec.replicas | int }}"
+
+    - name: Set Replica Target
+      block:
+        - name: Set Replica Scale Up
+          ansible.builtin.set_fact:
+            service_replica_target: "{{ service_replica_count + 1 | int }}"
+          when: service_action == "ScaleUp"
+
+        - name: Set Replica Scale Down
+          ansible.builtin.set_fact:
+            service_replica_target: "{{ service_replica_count - 1 | int }}"
+          when: service_action == "ScaleDown"
+
+        - name: Set Minimum scale target
+          ansible.builtin.set_fact:
+            service_replica_target: "{{ (0 if service_replica_target < 1 else service_replica_target ) | int }}"
+
     - name: Send Slack Message - Starting Scaling
       ansible.builtin.uri:
         url: "{{ slack_webhook_url }}"
@@ -26,7 +63,7 @@
 
             Ns: {{ webapp_namespace }}
             SvcName: {{ webapp_name }}
-            Target: {{ scale_target }}
+            Target: {{ service_replica_target }}
       delegate_to: localhost
 
     - name: Run Scaling Tasks
@@ -37,7 +74,7 @@
             kind: Deployment
             name: "{{ webapp_name }}"
             namespace: "{{ webapp_namespace }}"
-            replicas: "{{ scale_target | int }}"
+            replicas: "{{ service_replica_target }}"
             wait_timeout: 60
           delegate_to: localhost
 
@@ -53,7 +90,7 @@
 
                 Ns: {{ webapp_namespace }}
                 SvcName: {{ webapp_name }}
-                Target: {{ scale_target }}
+                Target: {{ service_replica_target }}
           delegate_to: localhost
 
       rescue:
@@ -69,5 +106,5 @@
 
                 Ns: {{ webapp_namespace }}
                 SvcName: {{ webapp_name }}
-                Target: {{ scale_target }}
+                Target: {{ service_replica_target }}
           delegate_to: localhost

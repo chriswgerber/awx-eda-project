@@ -3,7 +3,8 @@
 export MQTTUI_BROKER="mqtt://localhost:31883"
 export MQTTUI_TOPIC="server-events"
 
-MESSAGE_TEMPLATE='{"message": "%s", "scale": %s, "service_name": "%s", "publish": true}'
+# Action: ScaleUp / ScaleDown
+MESSAGE_TEMPLATE='{"service_name": "%s", "action": "%s", "message": "%s"}'
 
 function format_msg() {
   printf "${MESSAGE_TEMPLATE}" $1 $2 $3
