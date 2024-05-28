@@ -17,3 +17,4 @@
           job_args:
             extra_vars:
                 event_message: "{{ event.message }}"
+
