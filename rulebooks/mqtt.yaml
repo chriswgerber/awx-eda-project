@@ -10,6 +10,7 @@
 
   rules:
     - name: Run 'Slack Notifications' Template
+      condition: event.publish == true
       action:
         run_job_template:
           name: Slack Notifications
