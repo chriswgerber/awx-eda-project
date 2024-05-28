@@ -61,9 +61,8 @@
           message: |
             Starting: {{ slack_message_text }}
 
-            Ns: {{ webapp_namespace }}
-            SvcName: {{ webapp_name }}
-            Target: {{ service_replica_target | int }}
+            Service: {{ webapp_namespace }} / {{ webapp_name }}
+            Action: {{ service_replica_count | int }} to {{ service_replica_target | int }}
       delegate_to: localhost
 
     - name: Run Scaling Tasks
@@ -88,8 +87,7 @@
               message: |
                 Completed Successfuly: {{ slack_message_text }}
 
-                Ns: {{ webapp_namespace }}
-                SvcName: {{ webapp_name }}
+                Service: {{ webapp_namespace }} / {{ webapp_name }}
                 Target: {{ service_replica_target | int }}
           delegate_to: localhost
 
@@ -104,7 +102,6 @@
               message: |
                 Failed To Update: {{ slack_message_text }}
 
-                Ns: {{ webapp_namespace }}
-                SvcName: {{ webapp_name }}
+                Service: {{ webapp_namespace }} / {{ webapp_name }}
                 Target: {{ service_replica_target | int }}
           delegate_to: localhost
