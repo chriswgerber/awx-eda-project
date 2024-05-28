@@ -1,6 +1,6 @@
 ---
 
-- name: Notify via Slack
+- name: Scale K8s Service
   hosts: all
   vars:
     webapp_name: "{{ ansible_eda.event.service_name | default('example-webapp') }}"
@@ -9,35 +9,11 @@
     slack_message_channel_id: 'C075B3LN475' # #General
     scale_target: "{{ ansible_eda.event.scale | default(1) }}"
     slack_message_text_default: 'Scaling Up Webservice via EDA'
-    slack_message_text: |
+    slack_message_text: >-
       {{ ansible_eda.event.message | default(slack_message_text_default) }}
 
-      Ns: {{ webapp_namespace }}
-      SvcName: {{ webapp_name }}
-      Target: {{ scale_target }}
-
   tasks:
-    - name: Send notification message via Slack
-      ansible.builtin.uri:
-        url: "{{ slack_webhook_url }}"
-        method: POST
-        body_format: json
-        body:
-          channel_id: "{{ slack_message_channel_id }}"
-          message: "{{ slack_message_text }}"
-      delegate_to: localhost
-
-    - name: Scale Up Service
-      kubernetes.core.k8s_scale:
-        api_version: v1
-        kind: Deployment
-        name: "{{ webapp_name }}"
-        namespace: "{{ webapp_namespace }}"
-        replicas: "{{ scale_target | int }}"
-        wait_timeout: 60
-      delegate_to: localhost
-
-    - name: Send notification message via Slack
+    - name: Send Slack Message - Starting Scaling
       ansible.builtin.uri:
         url: "{{ slack_webhook_url }}"
         method: POST
@@ -45,5 +21,51 @@
         body:
           channel_id: "{{ slack_message_channel_id }}"
           message: |
-            Completed successfully.
-            {{ slack_message_text }}
+            Starting: {{ slack_message_text }}
+
+            Ns: {{ webapp_namespace }}
+            SvcName: {{ webapp_name }}
+            Target: {{ scale_target }}
+      delegate_to: localhost
+
+    - name: Run Scaling Tasks
+      block:
+        - name: Scale Up Service
+          kubernetes.core.k8s_scale:
+            api_version: v1
+            kind: Deployment
+            name: "{{ webapp_name }}"
+            namespace: "{{ webapp_namespace }}"
+            replicas: "{{ scale_target | int }}"
+            wait_timeout: 60
+          delegate_to: localhost
+
+        - name: Send success notification
+          ansible.builtin.uri:
+            url: "{{ slack_webhook_url }}"
+            method: POST
+            body_format: json
+            body:
+              channel_id: "{{ slack_message_channel_id }}"
+              message: |
+                Completed Successfuly: {{ slack_message_text }}
+
+                Ns: {{ webapp_namespace }}
+                SvcName: {{ webapp_name }}
+                Target: {{ scale_target }}
+          delegate_to: localhost
+      rescue:
+        - name: Send failure notification
+          ansible.builtin.uri:
+            url: "{{ slack_webhook_url }}"
+            method: POST
+            body_format: json
+            body:
+              channel_id: "{{ slack_message_channel_id }}"
+              message: |
+                Failed To Update: {{ slack_message_text }}
+
+                Ns: {{ webapp_namespace }}
+                SvcName: {{ webapp_name }}
+                Target: {{ scale_target }}
+          delegate_to: localhost

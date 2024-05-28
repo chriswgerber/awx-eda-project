@@ -1,5 +1,5 @@
 ---
-- name: Send messages from MQTT Topic
+- name: Invoke Job Template in reponse to MQTT Messages
   hosts: all
 
   sources:
@@ -9,9 +9,9 @@
         topic: "{{ mqtt_topic }}"
 
   rules:
-    - name: Run 'Slack Notifications' Template
+    - name: Run 'Scale Up K8s Service' Template
       condition: event.publish == true
       action:
         run_job_template:
-          name: Slack Notifications
+          name: Scale Up K8s Service
           organization: Default
