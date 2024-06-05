@@ -15,7 +15,8 @@
     # ScaleUp or ScaleDown
     service_action: "{{ ansible_eda.event.action | default('None') }}"
     service_replica_count:
-    service_replica_target:
+    service_replica_target: 1
+
   tasks:
 
     - name: Search for matching Deployments
